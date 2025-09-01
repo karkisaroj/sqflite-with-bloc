@@ -10,7 +10,7 @@ class Product {
     return {'id': id, 'title': title, 'description': description};
   }
 
-  // Create a Product from a Map.
+  // Create a Product from a  Map.
   factory Product.fromMap(Map<String, dynamic> map) {
     return Product(
       id: map['id'],

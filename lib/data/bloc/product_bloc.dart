@@ -15,17 +15,18 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
         final products = data.map((e) => Product.fromMap(e)).toList();
         emit(ProductLoaded(products));
       } catch (e) {
-        emit(ProductError('Failed to load products'));
+        emit(ProductError('failed to load products'));
       }
     });
 
     on<AddProductPressed>((event, emit) async {
       emit(ProductLoading());
       try {
-        await dbHelper.insertProduct({
-          'title': event.title,
-          'description': event.description,
-        });
+        final product = Product(
+          title: event.title,
+          description: event.description,
+        );
+        await dbHelper.insertProduct(product.toMap());
         final data = await dbHelper.getProducts();
         final products = data.map((e) => Product.fromMap(e)).toList();
         emit(ProductLoaded(products));
@@ -37,10 +38,11 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
     on<UpdateProducts>((event, emit) async {
       emit(ProductLoading());
       try {
-        await dbHelper.updateProduct(event.id, {
-          'title': event.title,
-          'description': event.description,
-        });
+        final product = Product(
+          title: event.title,
+          description: event.description,
+        );
+        await dbHelper.updateProducts(event.id, product.toMap());
         final data = await dbHelper.getProducts();
         final products = data.map((e) => Product.fromMap(e)).toList();
         emit(ProductLoaded(products));
