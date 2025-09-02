@@ -14,6 +14,7 @@ class ProductScreen extends StatefulWidget {
 }
 
 class _ProductScreenState extends State<ProductScreen> {
+  bool isFavourite = true;
   @override
   void initState() {
     super.initState();
@@ -49,7 +50,11 @@ class _ProductScreenState extends State<ProductScreen> {
           ElevatedButton(
             onPressed: () {
               context.read<ProductBloc>().add(
-                AddProductPressed(titleController.text, descController.text),
+                AddProductPressed(
+                  titleController.text,
+                  descController.text,
+                  false,
+                ),
               );
               LoadProducts;
               Navigator.of(context).pop();
@@ -84,6 +89,17 @@ class _ProductScreenState extends State<ProductScreen> {
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      IconButton(
+                        onPressed: () {
+                          context.read<ProductBloc>().add(
+                            ToggleFavourite(prod.id!),
+                          );
+                        },
+                        icon: prod.favourites
+                            ? Icon(Icons.favorite, color: Colors.red)
+                            : Icon(Icons.favorite_outlined),
+                      ),
+
                       IconButton(
                         onPressed: () {
                           Navigator.push(

@@ -25,6 +25,7 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
         final product = Product(
           title: event.title,
           description: event.description,
+          favourites: event.favourites,
         );
         await dbHelper.insertProduct(product.toMap());
         final data = await dbHelper.getProducts();
@@ -35,12 +36,33 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
       }
     });
 
+    on<ToggleFavourite>((event, emit) async {
+      if (state is ProductLoaded) {
+        final products = (state as ProductLoaded).products;
+        final index = products.indexWhere((p) => p.id == event.productId);
+        if (index != -1) {
+          final product = products[index];
+          final updatedProduct = Product(
+            id: product.id,
+            title: product.title,
+            description: product.description,
+            favourites: !product.favourites,
+          );
+          await dbHelper.updateProducts(product.id!, updatedProduct.toMap());
+          final data = await dbHelper.getProducts();
+          final updatedProducts = data.map((e) => Product.fromMap(e)).toList();
+          emit(ProductLoaded(updatedProducts));
+        }
+      }
+    });
+
     on<UpdateProducts>((event, emit) async {
       emit(ProductLoading());
       try {
         final product = Product(
           title: event.title,
           description: event.description,
+          favourites: event.favourites,
         );
         await dbHelper.updateProducts(event.id, product.toMap());
         final data = await dbHelper.getProducts();

@@ -21,6 +21,8 @@ class FormScreen extends StatelessWidget {
               'Description: ${product.description}',
               style: TextStyle(fontSize: 16),
             ),
+            SizedBox(height: 18),
+            Text("Is favourite?: ${product.favourites}"),
           ],
         ),
       ),

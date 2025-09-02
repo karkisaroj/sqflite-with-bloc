@@ -11,6 +11,12 @@ final class ProductLoaded extends ProductState {
   ProductLoaded(this.products);
 }
 
+final class FavouriteAdd extends ProductState {
+  final List<Product> product;
+  final Set<int> favouriteIds;
+  FavouriteAdd(this.product, this.favouriteIds);
+}
+
 final class ProductError extends ProductState {
   final String error;
   ProductError(this.error);

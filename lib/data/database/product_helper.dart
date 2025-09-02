@@ -17,12 +17,14 @@ class ProductHelper {
     var getDatabasePath = await getDatabasesPath();
     String path = join(getDatabasePath, 'Product_database.db');
 
+    // await deleteDatabase(path);
+
     Database database = await openDatabase(
       path,
-      version: 3,
+      version: 4,
       onCreate: (Database db, version) async {
         await db.execute(
-          'CREATE TABLE Products(id INTEGER PRIMARY KEY AUTOINCREMENT,title TEXT,description TEXT)',
+          'CREATE TABLE Products(id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, description TEXT, favourites INTEGER)',
         );
       },
     );
