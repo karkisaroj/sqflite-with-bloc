@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sqlite_usage/presentation/form_screen.dart';
+
 import '../data/bloc/product_bloc.dart';
 import '../data/bloc/product_event.dart';
 import '../data/bloc/product_state.dart';
+import '../data/model/product.dart';
 
 class ProductScreen extends StatefulWidget {
   const ProductScreen({super.key});
@@ -14,10 +15,10 @@ class ProductScreen extends StatefulWidget {
 }
 
 class _ProductScreenState extends State<ProductScreen> {
-  bool isFavourite = true;
   @override
   void initState() {
     super.initState();
+    // Load products when the screen is initialized
     context.read<ProductBloc>().add(LoadProducts());
   }
 
@@ -26,30 +27,47 @@ class _ProductScreenState extends State<ProductScreen> {
     final TextEditingController descController = TextEditingController();
     final TextEditingController categoryController = TextEditingController();
     final TextEditingController ratingController = TextEditingController();
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Add Product'),
+        title: const Text('Add New Product'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: titleController,
-                decoration: const InputDecoration(labelText: 'Title'),
+                decoration: const InputDecoration(
+                  labelText: 'Title',
+                  border: OutlineInputBorder(),
+                ),
               ),
+              const SizedBox(height: 16),
               TextField(
                 controller: descController,
-                decoration: const InputDecoration(labelText: 'Description'),
+                decoration: const InputDecoration(
+                  labelText: 'Description',
+                  border: OutlineInputBorder(),
+                ),
               ),
+              const SizedBox(height: 16),
               TextField(
                 controller: categoryController,
-                decoration: const InputDecoration(labelText: 'Category'),
+                decoration: const InputDecoration(
+                  labelText: 'Category',
+                  border: OutlineInputBorder(),
+                ),
               ),
+              const SizedBox(height: 16),
               TextField(
                 controller: ratingController,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Rating'),
+                decoration: const InputDecoration(
+                  labelText: 'Rating',
+                  border: OutlineInputBorder(),
+                ),
               ),
             ],
           ),
@@ -60,6 +78,11 @@ class _ProductScreenState extends State<ProductScreen> {
             child: const Text('Cancel'),
           ),
           ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
             onPressed: () {
               final rate = double.tryParse(ratingController.text) ?? 0.0;
               context.read<ProductBloc>().add(
@@ -71,7 +94,8 @@ class _ProductScreenState extends State<ProductScreen> {
                   rating: rate,
                 ),
               );
-              LoadProducts;
+              // The BLoC will emit a new state and the UI will rebuild automatically.
+              // No need to call LoadProducts manually here.
               Navigator.of(context).pop();
             },
             child: const Text('Add'),
@@ -81,10 +105,62 @@ class _ProductScreenState extends State<ProductScreen> {
     );
   }
 
+  void _showProductDetails(BuildContext context, Product product) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Text(product.title),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(product.description),
+              const SizedBox(height: 16),
+              RichText(
+                text: TextSpan(
+                  style: Theme.of(context).textTheme.bodyMedium,
+                  children: [
+                    const TextSpan(
+                        text: 'Category: ',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    TextSpan(text: product.categories),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              RichText(
+                text: TextSpan(
+                  style: Theme.of(context).textTheme.bodyMedium,
+                  children: [
+                    const TextSpan(
+                        text: 'Rating: ',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    TextSpan(text: '${product.rating} / 5.0'),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Close'),
+            )
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Products')),
+      appBar: AppBar(
+        title: const Text('Products'),
+        elevation: 4,
+      ),
       body: BlocBuilder<ProductBloc, ProductState>(
         builder: (context, state) {
           if (state is ProductLoading) {
@@ -92,73 +168,70 @@ class _ProductScreenState extends State<ProductScreen> {
           } else if (state is ProductLoaded) {
             final products = state.products;
             if (products.isEmpty) {
-              return const Center(child: Text('No products found.'));
+              return const Center(
+                  child: Text(
+                    'No products found. Tap "+" to add one!',
+                    style: TextStyle(fontSize: 16),
+                  ));
             }
             return ListView.builder(
+              padding: const EdgeInsets.all(8.0),
               itemCount: products.length,
               itemBuilder: (context, index) {
-                final prod = products[index];
-                return OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                    shape: BeveledRectangleBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(12)),
-                    ),
+                final product = products[index];
+                return Card(
+                  elevation: 4,
+                  margin: const EdgeInsets.symmetric(vertical: 8.0),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          shape: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(5)),
-                          ),
-                          title: Text(prod.title),
-                          content: Column(
-                            children: [
-                              Text("${prod.description} }"),
-                              Text(prod.categories),
-                              Text("${prod.rating}"),
-                            ],
-                          ),
-                        );
-                      },
-                    );
-                  },
-
                   child: ListTile(
-                    title: Text(prod.title),
-                    subtitle: Text(prod.description),
+                    contentPadding: const EdgeInsets.symmetric(
+                        vertical: 10.0, horizontal: 16.0),
+                    title: Text(
+                      product.title,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text(
+                      product.description,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    onTap: () => _showProductDetails(context, product),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
+                          tooltip: 'Favorite',
                           onPressed: () {
-                            context.read<ProductBloc>().add(
-                              ToggleFavourite(prod.id!),
-                            );
+                            context
+                                .read<ProductBloc>()
+                                .add(ToggleFavourite(product.id!));
                           },
-                          icon: prod.favourites
-                              ? Icon(Icons.favorite, color: Colors.red)
-                              : Icon(Icons.favorite_outlined),
+                          icon: product.favourites
+                              ? const Icon(Icons.favorite, color: Colors.red)
+                              : const Icon(Icons.favorite_border),
                         ),
-
                         IconButton(
+                          tooltip: 'Edit',
                           onPressed: () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => FormScreen(product: prod),
+                                builder: (context) => FormScreen(product: product),
                               ),
                             );
                           },
-                          icon: Icon(Icons.edit),
+                          icon: const Icon(Icons.edit_outlined),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.delete),
+                          tooltip: 'Delete',
+                          icon: const Icon(Icons.delete_outline,
+                              color: Colors.redAccent),
                           onPressed: () {
-                            context.read<ProductBloc>().add(
-                              DeleteProducts(prod.id!),
-                            );
+                            context
+                                .read<ProductBloc>()
+                                .add(DeleteProducts(product.id!));
                           },
                         ),
                       ],
@@ -170,11 +243,13 @@ class _ProductScreenState extends State<ProductScreen> {
           } else if (state is ProductError) {
             return Center(child: Text(state.error));
           }
-          return const Center(child: Text('Loading...'));
+          return const Center(
+              child: Text('Something went wrong. Please try again.'));
         },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddProductDialog(context),
+        tooltip: 'Add Product',
         child: const Icon(Icons.add),
       ),
     );

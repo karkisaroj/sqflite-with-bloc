@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sqlite_usage/data/bloc/product_bloc.dart';
 import 'package:sqlite_usage/data/bloc/product_event.dart';
-import 'package:sqlite_usage/data/bloc/product_state.dart';
 import '../data/model/product.dart';
 
 class FormScreen extends StatefulWidget {
@@ -15,102 +14,170 @@ class FormScreen extends StatefulWidget {
 }
 
 class _FormScreenState extends State<FormScreen> {
-  final TextEditingController titleController = TextEditingController();
-  final TextEditingController descriptionController = TextEditingController();
-  final TextEditingController categoryController = TextEditingController();
-  final TextEditingController ratingController = TextEditingController();
+  // Use 'late' for variables that will be initialized in initState.
+  late final TextEditingController _titleController;
+  late final TextEditingController _descriptionController;
+  late final TextEditingController _categoryController;
+  late final TextEditingController _ratingController;
+
+  // A GlobalKey for the Form to handle validation.
+  final _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    _titleController = TextEditingController(text: widget.product.title);
+    _descriptionController =
+        TextEditingController(text: widget.product.description);
+    _categoryController =
+        TextEditingController(text: widget.product.categories);
+    _ratingController =
+        TextEditingController(text: widget.product.rating.toString());
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _descriptionController.dispose();
+    _categoryController.dispose();
+    _ratingController.dispose();
+    super.dispose();
+  }
+
+  void _onSave() {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    // Safely parse the rating.
+    final double rating =
+        double.tryParse(_ratingController.text) ?? widget.product.rating;
+
+    // Dispatch the update event to the BLoC.
+    context.read<ProductBloc>().add(
+      UpdateProducts(
+        widget.product.id!,
+        _titleController.text,
+        _descriptionController.text,
+        widget.product.favourites,
+        _categoryController.text,
+        rating,
+      ),
+    );
+
+    // Give user feedback.
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Product updated successfully!'),
+        backgroundColor: Colors.green,
+      ),
+    );
+
+    // Go back to the product list screen.
+    Navigator.of(context).pop();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Product Details')),
-      body: BlocBuilder<ProductBloc, ProductState>(
-        builder: (context, state) {
-          if (state is ProductLoading) {
-            return Center(child: const CircularProgressIndicator());
-          }
-          if (state is ProductLoaded) {
-            return Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextField(
-                    controller: titleController,
-                    decoration: InputDecoration(
-                      labelText: widget.product.title,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(4)),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  TextField(
-                    controller: descriptionController,
-                    decoration: InputDecoration(
-                      hintText: widget.product.description == ''
-                          ? 'Emty Descripton'
-                          : widget.product.description,
-                      hintStyle: TextStyle(color: Colors.black),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(4)),
-                      ),
-                    ),
-                  ),
-                  TextField(
-                    controller: categoryController,
-                    decoration: InputDecoration(
-                      labelText: widget.product.categories == ''
-                          ? 'Emty Category'
-                          : widget.product.categories,
-                      hintStyle: TextStyle(color: Colors.black),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(4)),
-                      ),
-                    ),
-                  ),
-
-                  TextField(
-                    controller: ratingController,
-                    keyboardType: TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    decoration: InputDecoration(
-                      labelText: widget.product.rating.toDouble().toString(),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.all(Radius.circular(4)),
-                      ),
-                    ),
-                  ),
-                  Spacer(),
-                  Center(
-                    child: IconButton(
-                      onPressed: () {
-                        final String rateText = ratingController.text;
-                        final double? rate = double.tryParse(rateText);
-                        context.read<ProductBloc>().add(
-                          UpdateProducts(
-                            widget.product.id!,
-                            titleController.text,
-                            descriptionController.text,
-                            widget.product.favourites,
-                            categoryController.text,
-                            rate ?? 0.0,
-                          ),
-                        );
-                        Navigator.of(context).pop();
-                      },
-                      icon: Icon(Icons.save_as),
-                      iconSize: 60,
-                    ),
-                  ),
-                ],
+      appBar: AppBar(
+        title: const Text('Edit Product'),
+        elevation: 4,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TextFormField(
+                controller: _titleController,
+                decoration: const InputDecoration(
+                  labelText: 'Title',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.title),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a title';
+                  }
+                  return null;
+                },
               ),
-            );
-          }
-          return Center(child: Text("Loading ..."));
-        },
+              const SizedBox(height: 16),
+
+              TextFormField(
+                controller: _descriptionController,
+                decoration: const InputDecoration(
+                  labelText: 'Description',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.description),
+                ),
+                maxLines: 3,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a description';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+
+              // Category Field
+              TextFormField(
+                controller: _categoryController,
+                decoration: const InputDecoration(
+                  labelText: 'Category',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.category),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a category';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+
+              TextFormField(
+                controller: _ratingController,
+                keyboardType:
+                const TextInputType.numberWithOptions(decimal: true),
+                decoration: const InputDecoration(
+                  labelText: 'Rating (0.0 - 5.0)',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.star),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a rating';
+                  }
+                  final rating = double.tryParse(value);
+                  if (rating == null || rating < 0 || rating > 10) {
+                    return 'Please enter a valid rating between 0 and 10';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 32),
+
+              // Save Button
+              ElevatedButton.icon(
+                onPressed: _onSave,
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                icon: const Icon(Icons.save_as_outlined),
+                label: const Text('SAVE CHANGES'),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
