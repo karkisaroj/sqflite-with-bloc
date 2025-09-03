@@ -18,29 +18,41 @@ class _ProductScreenState extends State<ProductScreen> {
   @override
   void initState() {
     super.initState();
-    // Load products when the screen is first shown
     context.read<ProductBloc>().add(LoadProducts());
   }
 
   void _showAddProductDialog(BuildContext context) {
-    final titleController = TextEditingController();
-    final descController = TextEditingController();
+    final TextEditingController titleController = TextEditingController();
+    final TextEditingController descController = TextEditingController();
+    final TextEditingController categoryController = TextEditingController();
+    final TextEditingController ratingController = TextEditingController();
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Add Product'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: titleController,
-              decoration: const InputDecoration(labelText: 'Title'),
-            ),
-            TextField(
-              controller: descController,
-              decoration: const InputDecoration(labelText: 'Description'),
-            ),
-          ],
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: titleController,
+                decoration: const InputDecoration(labelText: 'Title'),
+              ),
+              TextField(
+                controller: descController,
+                decoration: const InputDecoration(labelText: 'Description'),
+              ),
+              TextField(
+                controller: categoryController,
+                decoration: const InputDecoration(labelText: 'Category'),
+              ),
+              TextField(
+                controller: ratingController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: 'Rating'),
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(
@@ -49,11 +61,14 @@ class _ProductScreenState extends State<ProductScreen> {
           ),
           ElevatedButton(
             onPressed: () {
+              final rate = double.tryParse(ratingController.text) ?? 0.0;
               context.read<ProductBloc>().add(
                 AddProductPressed(
-                  titleController.text,
-                  descController.text,
-                  false,
+                  title: titleController.text,
+                  description: descController.text,
+                  favourites: false,
+                  categories: categoryController.text,
+                  rating: rate,
                 ),
               );
               LoadProducts;
@@ -83,43 +98,71 @@ class _ProductScreenState extends State<ProductScreen> {
               itemCount: products.length,
               itemBuilder: (context, index) {
                 final prod = products[index];
-                return ListTile(
-                  title: Text(prod.title),
-                  subtitle: Text(prod.description),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        onPressed: () {
-                          context.read<ProductBloc>().add(
-                            ToggleFavourite(prod.id!),
-                          );
-                        },
-                        icon: prod.favourites
-                            ? Icon(Icons.favorite, color: Colors.red)
-                            : Icon(Icons.favorite_outlined),
-                      ),
+                return OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    shape: BeveledRectangleBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(12)),
+                    ),
+                  ),
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          shape: OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(5)),
+                          ),
+                          title: Text(prod.title),
+                          content: Column(
+                            children: [
+                              Text("${prod.description} }"),
+                              Text(prod.categories),
+                              Text("${prod.rating}"),
+                            ],
+                          ),
+                        );
+                      },
+                    );
+                  },
 
-                      IconButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => FormScreen(product: prod),
-                            ),
-                          );
-                        },
-                        icon: Icon(Icons.edit),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: () {
-                          context.read<ProductBloc>().add(
-                            DeleteProducts(prod.id!),
-                          );
-                        },
-                      ),
-                    ],
+                  child: ListTile(
+                    title: Text(prod.title),
+                    subtitle: Text(prod.description),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          onPressed: () {
+                            context.read<ProductBloc>().add(
+                              ToggleFavourite(prod.id!),
+                            );
+                          },
+                          icon: prod.favourites
+                              ? Icon(Icons.favorite, color: Colors.red)
+                              : Icon(Icons.favorite_outlined),
+                        ),
+
+                        IconButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => FormScreen(product: prod),
+                              ),
+                            );
+                          },
+                          icon: Icon(Icons.edit),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: () {
+                            context.read<ProductBloc>().add(
+                              DeleteProducts(prod.id!),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },

@@ -24,7 +24,7 @@ class ProductHelper {
       version: 4,
       onCreate: (Database db, version) async {
         await db.execute(
-          'CREATE TABLE Products(id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, description TEXT, favourites INTEGER)',
+          'CREATE TABLE Products(id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, description TEXT, favourites INTEGER,categories TEXT,rating REAL)',
         );
       },
     );

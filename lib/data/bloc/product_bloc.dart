@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../model/product.dart';
 import '../database/product_helper.dart';
@@ -26,6 +28,8 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
           title: event.title,
           description: event.description,
           favourites: event.favourites,
+          categories: event.categories,
+          rating: event.rating,
         );
         await dbHelper.insertProduct(product.toMap());
         final data = await dbHelper.getProducts();
@@ -47,6 +51,8 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
             title: product.title,
             description: product.description,
             favourites: !product.favourites,
+            categories: product.categories,
+            rating: product.rating,
           );
           await dbHelper.updateProducts(product.id!, updatedProduct.toMap());
           final data = await dbHelper.getProducts();
@@ -63,12 +69,15 @@ class ProductBloc extends Bloc<ProductEvent, ProductState> {
           title: event.title,
           description: event.description,
           favourites: event.favourites,
+          categories: event.categories,
+          rating: event.rating,
         );
         await dbHelper.updateProducts(event.id, product.toMap());
         final data = await dbHelper.getProducts();
         final products = data.map((e) => Product.fromMap(e)).toList();
         emit(ProductLoaded(products));
       } catch (e) {
+        log('$e');
         emit(ProductError('Failed to update product'));
       }
     });
