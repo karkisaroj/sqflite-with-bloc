@@ -6,12 +6,9 @@ import 'data/bloc/product_bloc.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(
-    BlocProvider(
-      create: (_) => ProductBloc(),
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        home: const ProductScreen(),
-      ),
+    MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: BlocProvider(create: (_) => ProductBloc(), child: ProductScreen()),
     ),
   );
 }
