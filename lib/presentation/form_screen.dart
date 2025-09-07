@@ -14,25 +14,26 @@ class FormScreen extends StatefulWidget {
 }
 
 class _FormScreenState extends State<FormScreen> {
-  // Use 'late' for variables that will be initialized in initState.
   late final TextEditingController _titleController;
   late final TextEditingController _descriptionController;
   late final TextEditingController _categoryController;
   late final TextEditingController _ratingController;
 
-  // A GlobalKey for the Form to handle validation.
   final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
     super.initState();
     _titleController = TextEditingController(text: widget.product.title);
-    _descriptionController =
-        TextEditingController(text: widget.product.description);
-    _categoryController =
-        TextEditingController(text: widget.product.categories);
-    _ratingController =
-        TextEditingController(text: widget.product.rating.toString());
+    _descriptionController = TextEditingController(
+      text: widget.product.description,
+    );
+    _categoryController = TextEditingController(
+      text: widget.product.categories,
+    );
+    _ratingController = TextEditingController(
+      text: widget.product.rating.toString(),
+    );
   }
 
   @override
@@ -49,11 +50,9 @@ class _FormScreenState extends State<FormScreen> {
       return;
     }
 
-    // Safely parse the rating.
     final double rating =
         double.tryParse(_ratingController.text) ?? widget.product.rating;
 
-    // Dispatch the update event to the BLoC.
     context.read<ProductBloc>().add(
       UpdateProducts(
         widget.product.id!,
@@ -65,7 +64,6 @@ class _FormScreenState extends State<FormScreen> {
       ),
     );
 
-    // Give user feedback.
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Product updated successfully!'),
@@ -73,17 +71,13 @@ class _FormScreenState extends State<FormScreen> {
       ),
     );
 
-    // Go back to the product list screen.
     Navigator.of(context).pop();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Edit Product'),
-        elevation: 4,
-      ),
+      appBar: AppBar(title: const Text('Edit Product'), elevation: 4),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -124,7 +118,6 @@ class _FormScreenState extends State<FormScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Category Field
               TextFormField(
                 controller: _categoryController,
                 decoration: const InputDecoration(
@@ -143,8 +136,9 @@ class _FormScreenState extends State<FormScreen> {
 
               TextFormField(
                 controller: _ratingController,
-                keyboardType:
-                const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 decoration: const InputDecoration(
                   labelText: 'Rating (0.0 - 5.0)',
                   border: OutlineInputBorder(),
@@ -163,7 +157,6 @@ class _FormScreenState extends State<FormScreen> {
               ),
               const SizedBox(height: 32),
 
-              // Save Button
               ElevatedButton.icon(
                 onPressed: _onSave,
                 style: ElevatedButton.styleFrom(

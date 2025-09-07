@@ -17,8 +17,6 @@ class ProductHelper {
     var getDatabasePath = await getDatabasesPath();
     String path = join(getDatabasePath, 'Product_database.db');
 
-    // await deleteDatabase(path);
-
     Database database = await openDatabase(
       path,
       version: 4,

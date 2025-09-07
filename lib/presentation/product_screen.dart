@@ -18,7 +18,6 @@ class _ProductScreenState extends State<ProductScreen> {
   @override
   void initState() {
     super.initState();
-    // Load products when the screen is initialized
     context.read<ProductBloc>().add(LoadProducts());
   }
 
@@ -94,8 +93,6 @@ class _ProductScreenState extends State<ProductScreen> {
                   rating: rate,
                 ),
               );
-              // The BLoC will emit a new state and the UI will rebuild automatically.
-              // No need to call LoadProducts manually here.
               Navigator.of(context).pop();
             },
             child: const Text('Add'),
@@ -110,7 +107,9 @@ class _ProductScreenState extends State<ProductScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           title: Text(product.title),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -123,8 +122,9 @@ class _ProductScreenState extends State<ProductScreen> {
                   style: Theme.of(context).textTheme.bodyMedium,
                   children: [
                     const TextSpan(
-                        text: 'Category: ',
-                        style: TextStyle(fontWeight: FontWeight.bold)),
+                      text: 'Category: ',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                     TextSpan(text: product.categories),
                   ],
                 ),
@@ -135,8 +135,9 @@ class _ProductScreenState extends State<ProductScreen> {
                   style: Theme.of(context).textTheme.bodyMedium,
                   children: [
                     const TextSpan(
-                        text: 'Rating: ',
-                        style: TextStyle(fontWeight: FontWeight.bold)),
+                      text: 'Rating: ',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                     TextSpan(text: '${product.rating} / 5.0'),
                   ],
                 ),
@@ -147,7 +148,7 @@ class _ProductScreenState extends State<ProductScreen> {
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
               child: const Text('Close'),
-            )
+            ),
           ],
         );
       },
@@ -157,10 +158,7 @@ class _ProductScreenState extends State<ProductScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Products'),
-        elevation: 4,
-      ),
+      appBar: AppBar(title: const Text('Products'), elevation: 4),
       body: BlocBuilder<ProductBloc, ProductState>(
         builder: (context, state) {
           if (state is ProductLoading) {
@@ -169,10 +167,11 @@ class _ProductScreenState extends State<ProductScreen> {
             final products = state.products;
             if (products.isEmpty) {
               return const Center(
-                  child: Text(
-                    'No products found. Tap "+" to add one!',
-                    style: TextStyle(fontSize: 16),
-                  ));
+                child: Text(
+                  'No products found. Tap "+" to add one!',
+                  style: TextStyle(fontSize: 16),
+                ),
+              );
             }
             return ListView.builder(
               padding: const EdgeInsets.all(8.0),
@@ -187,7 +186,9 @@ class _ProductScreenState extends State<ProductScreen> {
                   ),
                   child: ListTile(
                     contentPadding: const EdgeInsets.symmetric(
-                        vertical: 10.0, horizontal: 16.0),
+                      vertical: 10.0,
+                      horizontal: 16.0,
+                    ),
                     title: Text(
                       product.title,
                       style: const TextStyle(fontWeight: FontWeight.bold),
@@ -204,9 +205,9 @@ class _ProductScreenState extends State<ProductScreen> {
                         IconButton(
                           tooltip: 'Favorite',
                           onPressed: () {
-                            context
-                                .read<ProductBloc>()
-                                .add(ToggleFavourite(product.id!));
+                            context.read<ProductBloc>().add(
+                              ToggleFavourite(product.id!),
+                            );
                           },
                           icon: product.favourites
                               ? const Icon(Icons.favorite, color: Colors.red)
@@ -218,7 +219,8 @@ class _ProductScreenState extends State<ProductScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => FormScreen(product: product),
+                                builder: (context) =>
+                                    FormScreen(product: product),
                               ),
                             );
                           },
@@ -226,12 +228,14 @@ class _ProductScreenState extends State<ProductScreen> {
                         ),
                         IconButton(
                           tooltip: 'Delete',
-                          icon: const Icon(Icons.delete_outline,
-                              color: Colors.redAccent),
+                          icon: const Icon(
+                            Icons.delete_outline,
+                            color: Colors.redAccent,
+                          ),
                           onPressed: () {
-                            context
-                                .read<ProductBloc>()
-                                .add(DeleteProducts(product.id!));
+                            context.read<ProductBloc>().add(
+                              DeleteProducts(product.id!),
+                            );
                           },
                         ),
                       ],
@@ -244,7 +248,8 @@ class _ProductScreenState extends State<ProductScreen> {
             return Center(child: Text(state.error));
           }
           return const Center(
-              child: Text('Something went wrong. Please try again.'));
+            child: Text('Something went wrong. Please try again.'),
+          );
         },
       ),
       floatingActionButton: FloatingActionButton(

@@ -15,7 +15,6 @@ class Product {
     required this.rating,
   });
 
-  // Convert a Product into a Map.
   Map<String, dynamic> toMap() {
     return {
       'title': title,
