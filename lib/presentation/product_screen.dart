@@ -1,13 +1,14 @@
-import 'dart:developer';
+// import 'dart:developer';
+// import '../data/model/product.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sqlite_usage/presentation/form_screen.dart';
+import 'package:sqlite_usage/presentation/product_details.dart';
 
 import '../data/bloc/product_bloc.dart';
 import '../data/bloc/product_event.dart';
 import '../data/bloc/product_state.dart';
-import '../data/model/product.dart';
 
 class ProductScreen extends StatefulWidget {
   const ProductScreen({super.key});
@@ -100,8 +101,6 @@ class _ProductScreenState extends State<ProductScreen> {
                     rating: rate,
                   ),
                 );
-                // The BLoC will emit a new state and the UI will rebuild automatically.
-                // No need to call LoadProducts manually here.
                 Navigator.of(context).pop();
               },
               child: const Text('Add'),
@@ -112,70 +111,100 @@ class _ProductScreenState extends State<ProductScreen> {
     );
   }
 
-  void _showProductDetails(
-    BuildContext context,
-    Product product,
-    ProductBloc bloc,
-  ) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: Row(
-            children: [
-              Text('Product: ${product.title}'),
-              Spacer(),
-              product.favourites == true
-                  ? Icon(Icons.favorite)
-                  : Icon(Icons.favorite_border),
-            ],
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Description: ${product.description}'),
-              const SizedBox(height: 16),
-              RichText(
-                text: TextSpan(
-                  style: Theme.of(context).textTheme.bodyMedium,
-                  children: [
-                    const TextSpan(
-                      text: 'Category: ',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    TextSpan(text: product.categories),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 8),
-              RichText(
-                text: TextSpan(
-                  style: Theme.of(context).textTheme.bodyMedium,
-                  children: [
-                    const TextSpan(
-                      text: 'Rating: ',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    TextSpan(text: '${product.rating} / 5.0'),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Close'),
-            ),
-          ],
-        );
-      },
-    );
-  }
+  // void _showProductDetails(
+  //   BuildContext context,
+  //   Product product,
+  //   ProductBloc bloc,
+  // ) {
+  //   showDialog(
+  //     context: context,
+  //     builder: (BuildContext ctx) {
+  //       return AlertDialog(
+  //         shape: RoundedRectangleBorder(
+  //           borderRadius: BorderRadius.circular(16),
+  //         ),
+  //         title: Row(
+  //           children: [
+  //             Text('Product: ${product.title}'),
+  //             Spacer(),
+  //             IconButton(
+  //               onPressed: () {
+  //                 if (product.favourites == true) {
+  //                   context.read<ProductBloc>().add(
+  //                     UpdateProducts(
+  //                       product.id!,
+  //                       product.title,
+  //                       product.description,
+  //                       false,
+  //                       product.categories,
+  //                       product.rating,
+  //                     ),
+  //                   );
+  //                 }
+  //                 if (product.favourites == false) {
+  //                   context.read<ProductBloc>().add(
+  //                     UpdateProducts(
+  //                       product.id!,
+  //                       product.title,
+  //                       product.description,
+  //                       true,
+  //                       product.categories,
+  //                       product.rating,
+  //                     ),
+  //                   );
+  //                 }
+
+  //                 log("isfavourite: ${product.favourites}");
+  //               },
+  //               icon: product.favourites == true
+  //                   ? Icon(Icons.favorite)
+  //                   : Icon(Icons.favorite_border),
+  //             ),
+  //           ],
+  //         ),
+  //         content: Column(
+  //           mainAxisSize: MainAxisSize.min,
+  //           crossAxisAlignment: CrossAxisAlignment.start,
+  //           children: [
+  //             Text('Description: ${product.description}'),
+  //             const SizedBox(height: 16),
+  //             RichText(
+  //               text: TextSpan(
+  //                 style: Theme.of(context).textTheme.bodyMedium,
+  //                 children: [
+  //                   const TextSpan(
+  //                     text: 'Category: ',
+  //                     style: TextStyle(fontWeight: FontWeight.bold),
+  //                   ),
+  //                   TextSpan(text: product.categories),
+  //                 ],
+  //               ),
+  //             ),
+  //             const SizedBox(height: 8),
+  //             RichText(
+  //               text: TextSpan(
+  //                 style: Theme.of(context).textTheme.bodyMedium,
+  //                 children: [
+  //                   const TextSpan(
+  //                     text: 'Rating: ',
+  //                     style: TextStyle(fontWeight: FontWeight.bold),
+  //                   ),
+  //                   TextSpan(text: '${product.rating} / 5.0'),
+  //                 ],
+  //               ),
+  //             ),
+  //           ],
+  //         ),
+  //         actions: [
+  //           TextButton(
+  //             onPressed: () => Navigator.of(context).pop(),
+  //             child: const Text('Close'),
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -220,8 +249,15 @@ class _ProductScreenState extends State<ProductScreen> {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    onTap: () =>
-                        _showProductDetails(context, product, ProductBloc()),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (ctx) => BlocProvider.value(
+                          value: BlocProvider.of<ProductBloc>(context),
+                          child: ProductDetails(product: product),
+                        ),
+                      ),
+                    ),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sqlite_usage/data/bloc/product_bloc.dart';
 import 'package:sqlite_usage/data/bloc/product_event.dart';
+import 'package:sqlite_usage/data/bloc/product_state.dart';
 import '../data/model/product.dart';
 
 class FormScreen extends StatefulWidget {
@@ -77,7 +78,46 @@ class _FormScreenState extends State<FormScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Edit Product'), elevation: 4),
+      appBar: AppBar(
+        title: Row(
+          children: [
+            const Text('Edit Product'),
+            Spacer(),
+            BlocBuilder<ProductBloc, ProductState>(
+              builder: (context, state) {
+                Product currentProduct = widget.product;
+                if (state is ProductLoaded) {
+                  final updated = state.products.firstWhere(
+                    (p) => p.id == widget.product.id,
+                    orElse: () => widget.product,
+                  );
+                  currentProduct = updated;
+                }
+                return IconButton(
+                  onPressed: () {
+                    context.read<ProductBloc>().add(
+                      UpdateProducts(
+                        currentProduct.id!,
+                        currentProduct.title,
+                        currentProduct.description,
+                        !currentProduct.favourites,
+                        currentProduct.categories,
+                        currentProduct.rating,
+                      ),
+                    );
+                  },
+                  icon: Icon(
+                    currentProduct.favourites
+                        ? Icons.favorite
+                        : Icons.favorite_border_outlined,
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+        elevation: 4,
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -155,6 +195,7 @@ class _FormScreenState extends State<FormScreen> {
                   return null;
                 },
               ),
+
               const SizedBox(height: 32),
 
               ElevatedButton.icon(
