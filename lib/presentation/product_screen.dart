@@ -3,12 +3,13 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sqlite_usage/presentation/cart_product.dart';
 import 'package:sqlite_usage/presentation/form_screen.dart';
 import 'package:sqlite_usage/presentation/product_details.dart';
 
-import '../data/bloc/product_bloc.dart';
-import '../data/bloc/product_event.dart';
-import '../data/bloc/product_state.dart';
+import '../data/bloc/product_bloc/product_bloc.dart';
+import '../data/bloc/product_bloc/product_event.dart';
+import '../data/bloc/product_bloc/product_state.dart';
 
 class ProductScreen extends StatefulWidget {
   const ProductScreen({super.key});
@@ -31,6 +32,7 @@ class _ProductScreenState extends State<ProductScreen> {
     final TextEditingController descController = TextEditingController();
     final TextEditingController categoryController = TextEditingController();
     final TextEditingController ratingController = TextEditingController();
+    final TextEditingController quantityController = TextEditingController();
     showDialog(
       context: context,
       builder: (buildContext) => BlocProvider<ProductBloc>.value(
@@ -76,6 +78,15 @@ class _ProductScreenState extends State<ProductScreen> {
                     border: OutlineInputBorder(),
                   ),
                 ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: quantityController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: "Quantity",
+                    border: OutlineInputBorder(),
+                  ),
+                ),
               ],
             ),
           ),
@@ -92,6 +103,7 @@ class _ProductScreenState extends State<ProductScreen> {
               ),
               onPressed: () {
                 final rate = double.tryParse(ratingController.text) ?? 0.0;
+                final quantity = int.tryParse(quantityController.text) ?? 0;
                 productBloc.add(
                   AddProductPressed(
                     title: titleController.text,
@@ -99,6 +111,7 @@ class _ProductScreenState extends State<ProductScreen> {
                     favourites: false,
                     categories: categoryController.text,
                     rating: rate,
+                    quantity: quantity,
                   ),
                 );
                 Navigator.of(context).pop();
@@ -209,7 +222,27 @@ class _ProductScreenState extends State<ProductScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Products'), elevation: 4),
+      appBar: AppBar(
+        title: const Text('Products'),
+        elevation: 4,
+        centerTitle: true,
+        actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (ctx) => BlocProvider.value(
+                    value: BlocProvider.of<ProductBloc>(context),
+                    child: CartProduct(),
+                  ),
+                ),
+              );
+            },
+            icon: Icon(Icons.add_business),
+          ),
+        ],
+      ),
       body: BlocBuilder<ProductBloc, ProductState>(
         builder: (context, state) {
           if (state is ProductLoading) {

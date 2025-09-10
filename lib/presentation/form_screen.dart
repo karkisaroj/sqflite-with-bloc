@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:sqlite_usage/data/bloc/product_bloc.dart';
-import 'package:sqlite_usage/data/bloc/product_event.dart';
-import 'package:sqlite_usage/data/bloc/product_state.dart';
+import 'package:sqlite_usage/data/bloc/product_bloc/product_bloc.dart';
+import 'package:sqlite_usage/data/bloc/product_bloc/product_event.dart';
+import 'package:sqlite_usage/data/bloc/product_bloc/product_state.dart';
 import '../data/model/product.dart';
 
 class FormScreen extends StatefulWidget {
@@ -19,6 +19,7 @@ class _FormScreenState extends State<FormScreen> {
   late final TextEditingController _descriptionController;
   late final TextEditingController _categoryController;
   late final TextEditingController _ratingController;
+  late final TextEditingController _qunatityController;
 
   final _formKey = GlobalKey<FormState>();
 
@@ -43,6 +44,7 @@ class _FormScreenState extends State<FormScreen> {
     _descriptionController.dispose();
     _categoryController.dispose();
     _ratingController.dispose();
+    _qunatityController.dispose();
     super.dispose();
   }
 
@@ -53,6 +55,8 @@ class _FormScreenState extends State<FormScreen> {
 
     final double rating =
         double.tryParse(_ratingController.text) ?? widget.product.rating;
+    final int quantity =
+        int.tryParse(_qunatityController.text) ?? widget.product.quantity;
 
     context.read<ProductBloc>().add(
       UpdateProducts(
@@ -62,6 +66,7 @@ class _FormScreenState extends State<FormScreen> {
         widget.product.favourites,
         _categoryController.text,
         rating,
+        quantity,
       ),
     );
 
@@ -103,6 +108,7 @@ class _FormScreenState extends State<FormScreen> {
                         !currentProduct.favourites,
                         currentProduct.categories,
                         currentProduct.rating,
+                        currentProduct.quantity,
                       ),
                     );
                   },
@@ -191,6 +197,21 @@ class _FormScreenState extends State<FormScreen> {
                   final rating = double.tryParse(value);
                   if (rating == null || rating < 0 || rating > 10) {
                     return 'Please enter a valid rating between 0 and 10';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _qunatityController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: "Quantity",
+                  prefixIcon: Icon(Icons.add_business_rounded),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return "Please enter quantity";
                   }
                   return null;
                 },

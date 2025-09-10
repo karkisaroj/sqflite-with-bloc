@@ -5,6 +5,7 @@ class Product {
   final bool favourites;
   final String categories;
   final double rating;
+  final int quantity;
 
   Product({
     this.id,
@@ -13,6 +14,7 @@ class Product {
     required this.favourites,
     required this.categories,
     required this.rating,
+    required this.quantity,
   });
 
   Map<String, dynamic> toMap() {
@@ -22,6 +24,7 @@ class Product {
       'favourites': favourites ? 1 : 0,
       'categories': categories,
       'rating': rating.toDouble(),
+      'quantity': quantity.toInt(),
     };
   }
 
@@ -33,6 +36,7 @@ class Product {
       favourites: map['favourites'] == 1,
       categories: map['categories'],
       rating: (map['rating'] as num?)?.toDouble() ?? 0.0,
+      quantity: map['quantity'] ?? 0,
     );
   }
 }

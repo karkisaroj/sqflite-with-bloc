@@ -6,12 +6,14 @@ final class AddProductPressed extends ProductEvent {
   final bool favourites;
   final String categories;
   final double rating;
+  final int quantity;
   AddProductPressed({
     required this.title,
     required this.description,
     required this.favourites,
     required this.categories,
     required this.rating,
+    required this.quantity,
   });
 }
 
@@ -24,6 +26,7 @@ final class UpdateProducts extends ProductEvent {
   final bool favourites;
   final String categories;
   final double rating;
+  final int quantity;
   UpdateProducts(
     this.id,
     this.title,
@@ -31,6 +34,7 @@ final class UpdateProducts extends ProductEvent {
     this.favourites,
     this.categories,
     this.rating,
+    this.quantity,
   );
 }
 

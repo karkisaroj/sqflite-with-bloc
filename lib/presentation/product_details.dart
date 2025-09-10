@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:sqlite_usage/data/bloc/product_bloc.dart';
-import 'package:sqlite_usage/data/bloc/product_event.dart';
-import 'package:sqlite_usage/data/bloc/product_state.dart';
+import 'package:sqlite_usage/data/bloc/product_bloc/product_bloc.dart';
+import 'package:sqlite_usage/data/bloc/product_bloc/product_event.dart';
+import 'package:sqlite_usage/data/bloc/product_bloc/product_state.dart';
 import 'package:sqlite_usage/data/model/product.dart';
 
 class ProductDetails extends StatefulWidget {
@@ -40,6 +40,7 @@ class _ProductDetailsState extends State<ProductDetails> {
                       !currentProduct.favourites,
                       currentProduct.categories,
                       currentProduct.rating,
+                      currentProduct.quantity,
                     ),
                   );
                 },
@@ -84,6 +85,13 @@ class _ProductDetailsState extends State<ProductDetails> {
                         Icon(Icons.star, color: Colors.amber, size: 20),
                         SizedBox(width: 4),
                         Text(widget.product.rating.toString()),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Icon(Icons.production_quantity_limits_rounded),
+                        SizedBox(width: 5),
+                        Text(widget.product.quantity.toString()),
                       ],
                     ),
                   ],
