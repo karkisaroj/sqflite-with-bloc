@@ -1,10 +1,8 @@
-// import 'dart:developer';
-// import '../data/model/product.dart';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sqlite_usage/data/bloc/cart_bloc/cart_bloc.dart';
+import 'package:sqlite_usage/data/database/product_helper.dart';
 import 'package:sqlite_usage/presentation/cart_product.dart';
-import 'package:sqlite_usage/presentation/form_screen.dart';
 import 'package:sqlite_usage/presentation/product_details.dart';
 
 import '../data/bloc/product_bloc/product_bloc.dart';
@@ -23,6 +21,7 @@ class _ProductScreenState extends State<ProductScreen> {
   @override
   void initState() {
     super.initState();
+
     context.read<ProductBloc>().add(LoadProducts());
     productBloc = context.read<ProductBloc>();
   }
@@ -124,101 +123,6 @@ class _ProductScreenState extends State<ProductScreen> {
     );
   }
 
-  // void _showProductDetails(
-  //   BuildContext context,
-  //   Product product,
-  //   ProductBloc bloc,
-  // ) {
-  //   showDialog(
-  //     context: context,
-  //     builder: (BuildContext ctx) {
-  //       return AlertDialog(
-  //         shape: RoundedRectangleBorder(
-  //           borderRadius: BorderRadius.circular(16),
-  //         ),
-  //         title: Row(
-  //           children: [
-  //             Text('Product: ${product.title}'),
-  //             Spacer(),
-  //             IconButton(
-  //               onPressed: () {
-  //                 if (product.favourites == true) {
-  //                   context.read<ProductBloc>().add(
-  //                     UpdateProducts(
-  //                       product.id!,
-  //                       product.title,
-  //                       product.description,
-  //                       false,
-  //                       product.categories,
-  //                       product.rating,
-  //                     ),
-  //                   );
-  //                 }
-  //                 if (product.favourites == false) {
-  //                   context.read<ProductBloc>().add(
-  //                     UpdateProducts(
-  //                       product.id!,
-  //                       product.title,
-  //                       product.description,
-  //                       true,
-  //                       product.categories,
-  //                       product.rating,
-  //                     ),
-  //                   );
-  //                 }
-
-  //                 log("isfavourite: ${product.favourites}");
-  //               },
-  //               icon: product.favourites == true
-  //                   ? Icon(Icons.favorite)
-  //                   : Icon(Icons.favorite_border),
-  //             ),
-  //           ],
-  //         ),
-  //         content: Column(
-  //           mainAxisSize: MainAxisSize.min,
-  //           crossAxisAlignment: CrossAxisAlignment.start,
-  //           children: [
-  //             Text('Description: ${product.description}'),
-  //             const SizedBox(height: 16),
-  //             RichText(
-  //               text: TextSpan(
-  //                 style: Theme.of(context).textTheme.bodyMedium,
-  //                 children: [
-  //                   const TextSpan(
-  //                     text: 'Category: ',
-  //                     style: TextStyle(fontWeight: FontWeight.bold),
-  //                   ),
-  //                   TextSpan(text: product.categories),
-  //                 ],
-  //               ),
-  //             ),
-  //             const SizedBox(height: 8),
-  //             RichText(
-  //               text: TextSpan(
-  //                 style: Theme.of(context).textTheme.bodyMedium,
-  //                 children: [
-  //                   const TextSpan(
-  //                     text: 'Rating: ',
-  //                     style: TextStyle(fontWeight: FontWeight.bold),
-  //                   ),
-  //                   TextSpan(text: '${product.rating} / 5.0'),
-  //                 ],
-  //               ),
-  //             ),
-  //           ],
-  //         ),
-  //         actions: [
-  //           TextButton(
-  //             onPressed: () => Navigator.of(context).pop(),
-  //             child: const Text('Close'),
-  //           ),
-  //         ],
-  //       );
-  //     },
-  //   );
-  // }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -227,19 +131,45 @@ class _ProductScreenState extends State<ProductScreen> {
         elevation: 4,
         centerTitle: true,
         actions: [
-          IconButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (ctx) => BlocProvider.value(
-                    value: BlocProvider.of<ProductBloc>(context),
-                    child: CartProduct(),
+          BlocBuilder<CartBloc, CartState>(
+            builder: (context, cartState) {
+              int totalCartQty = 0;
+              if (cartState is CartLoaded) {
+                totalCartQty = cartState.products.length;
+              }
+              return Stack(
+                alignment: Alignment.topRight,
+                children: [
+                  IconButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (ctx) => BlocProvider.value(
+                            value: context.read<CartBloc>(),
+                            child: CartProduct(),
+                          ),
+                        ),
+                      );
+                    },
+                    icon: Icon(Icons.shopping_cart),
                   ),
-                ),
+                  if (totalCartQty > 0)
+                    Positioned(
+                      right: 6,
+                      top: 6,
+                      child: CircleAvatar(
+                        radius: 10,
+                        backgroundColor: Colors.red,
+                        child: Text(
+                          totalCartQty.toString(),
+                          style: TextStyle(fontSize: 12, color: Colors.white),
+                        ),
+                      ),
+                    ),
+                ],
               );
             },
-            icon: Icon(Icons.add_business),
           ),
         ],
       ),
@@ -268,72 +198,111 @@ class _ProductScreenState extends State<ProductScreen> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(
-                      vertical: 10.0,
-                      horizontal: 16.0,
-                    ),
-                    title: Text(
-                      product.title,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Text(
-                      product.description,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (ctx) => BlocProvider.value(
-                          value: BlocProvider.of<ProductBloc>(context),
-                          child: ProductDetails(product: product),
+                  child: BlocBuilder<CartBloc, CartState>(
+                    builder: (context, cartState) {
+                      int cartQty = 0;
+                      if (cartState is CartLoaded) {
+                        cartQty = cartState.products
+                            .where((p) => p.title == product.title)
+                            .length;
+                      }
+                      return ListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 10.0,
+                          horizontal: 16.0,
                         ),
-                      ),
-                    ),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          tooltip: 'Favorite',
-                          onPressed: () {
-                            context.read<ProductBloc>().add(
-                              ToggleFavourite(product.id!),
-                            );
-                          },
-                          icon: product.favourites
-                              ? const Icon(Icons.favorite, color: Colors.red)
-                              : const Icon(Icons.favorite_border),
+                        title: Text(
+                          product.title,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
-                        IconButton(
-                          tooltip: 'Edit',
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => BlocProvider.value(
-                                  value: context.read<ProductBloc>(),
-                                  child: FormScreen(product: product),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              product.description,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.production_quantity_limits_rounded,
+                                  size: 18,
+                                ),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Available: ${product.quantity}',
+                                  style: TextStyle(fontSize: 12),
+                                ),
+                                SizedBox(width: 12),
+                                Icon(
+                                  Icons.shopping_cart,
+                                  size: 18,
+                                  color: Colors.blue,
+                                ),
+                                SizedBox(width: 4),
+                                Text(
+                                  cartQty.toString(),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.blue,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (ctx) => BlocProvider.value(
+                              value: BlocProvider.of<ProductBloc>(context),
+                              child: ProductDetails(product: product),
+                            ),
+                          ),
+                        ),
+                        trailing: Stack(
+                          alignment: Alignment.topRight,
+                          children: [
+                            IconButton(
+                              icon: Icon(Icons.shopping_cart),
+                              tooltip: 'Add to Cart',
+                              onPressed: cartQty < product.quantity
+                                  ? () {
+                                      context.read<CartBloc>().add(
+                                        AddToCartProducts(
+                                          title: product.title,
+                                          description: product.description,
+                                          favourites: product.favourites,
+                                          categories: product.categories,
+                                          rating: product.rating,
+                                          quantity: 1,
+                                        ),
+                                      );
+                                    }
+                                  : null,
+                            ),
+                            if (cartQty > 0)
+                              Positioned(
+                                right: 4,
+                                top: 4,
+                                child: CircleAvatar(
+                                  radius: 10,
+                                  backgroundColor: Colors.blue,
+                                  child: Text(
+                                    cartQty.toString(),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.white,
+                                    ),
+                                  ),
                                 ),
                               ),
-                            );
-                          },
-                          icon: const Icon(Icons.edit_outlined),
+                          ],
                         ),
-                        IconButton(
-                          tooltip: 'Delete',
-                          icon: const Icon(
-                            Icons.delete_outline,
-                            color: Colors.redAccent,
-                          ),
-                          onPressed: () {
-                            context.read<ProductBloc>().add(
-                              DeleteProducts(product.id!),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
+                      );
+                    },
                   ),
                 );
               },
@@ -346,10 +315,37 @@ class _ProductScreenState extends State<ProductScreen> {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showAddProductDialog(context),
-        tooltip: 'Add Product',
-        child: const Icon(Icons.add),
+      bottomNavigationBar: BottomAppBar(
+        color: Colors.white,
+        elevation: 8,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              FloatingActionButton.extended(
+                onPressed: () {
+                  ProductHelper.instance.deleteDatabaseFile();
+                },
+                icon: Icon(Icons.delete, color: Colors.white),
+                label: Text(
+                  "Delete Database",
+                  style: TextStyle(color: Colors.white),
+                ),
+                backgroundColor: Colors.red,
+              ),
+              Spacer(),
+              FloatingActionButton.extended(
+                onPressed: () {
+                  _showAddProductDialog(context);
+                },
+                icon: Icon(Icons.add, color: Colors.white),
+                label: Text("Add", style: TextStyle(color: Colors.white)),
+                backgroundColor: Colors.black,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

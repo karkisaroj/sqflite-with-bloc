@@ -36,6 +36,9 @@ class _FormScreenState extends State<FormScreen> {
     _ratingController = TextEditingController(
       text: widget.product.rating.toString(),
     );
+    _qunatityController = TextEditingController(
+      text: widget.product.quantity.toString(),
+    );
   }
 
   @override
@@ -201,6 +204,7 @@ class _FormScreenState extends State<FormScreen> {
                   return null;
                 },
               ),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _qunatityController,
                 keyboardType: TextInputType.number,

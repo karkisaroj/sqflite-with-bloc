@@ -80,18 +80,23 @@ class _ProductDetailsState extends State<ProductDetails> {
                       backgroundColor: Colors.blue.shade50,
                     ),
                     Spacer(),
-                    Row(
+                    Column(
                       children: [
-                        Icon(Icons.star, color: Colors.amber, size: 20),
-                        SizedBox(width: 4),
-                        Text(widget.product.rating.toString()),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        Icon(Icons.production_quantity_limits_rounded),
-                        SizedBox(width: 5),
-                        Text(widget.product.quantity.toString()),
+                        Row(
+                          children: [
+                            Icon(Icons.star, color: Colors.amber, size: 20),
+                            SizedBox(width: 4),
+                            Text(widget.product.rating.toString()),
+                          ],
+                        ),
+                        SizedBox(height: 30),
+                        Row(
+                          children: [
+                            Icon(Icons.production_quantity_limits_rounded),
+                            SizedBox(width: 5),
+                            Text(widget.product.quantity.toString()),
+                          ],
+                        ),
                       ],
                     ),
                   ],

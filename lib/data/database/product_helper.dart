@@ -24,9 +24,38 @@ class ProductHelper {
         await db.execute(
           'CREATE TABLE Products(id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, description TEXT, favourites INTEGER,categories TEXT,rating REAL,quantity INTEGER)',
         );
+        await db.execute(
+          'CREATE TABLE Cart(id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, description TEXT, favourites INTEGER, categories TEXT, rating REAL, quantity INTEGER)',
+        );
       },
     );
     return database;
+  }
+
+  // CART PERSISTENCE
+  Future<int> insertCartProduct(Map<String, dynamic> product) async {
+    final db = await database;
+    return await db.insert('Cart', product);
+  }
+
+  Future<List<Map<String, dynamic>>> getCartProducts() async {
+    final db = await database;
+    return await db.query('Cart');
+  }
+
+  Future<int> updateCartProduct(int id, Map<String, dynamic> product) async {
+    final db = await database;
+    return await db.update('Cart', product, where: 'id=?', whereArgs: [id]);
+  }
+
+  Future<int> deleteCartProduct(int id) async {
+    final db = await database;
+    return await db.delete('Cart', where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<void> clearCart() async {
+    final db = await database;
+    await db.delete('Cart');
   }
 
   Future<int> insertProduct(Map<String, dynamic> product) async {
@@ -52,5 +81,12 @@ class ProductHelper {
   Future<int> deleteProduct(int id) async {
     final db = await database;
     return await db.delete('Products', where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<void> deleteDatabaseFile() async {
+    var getDatabasePath = await getDatabasesPath();
+    String path = join(getDatabasePath, 'Product_database.db');
+    await deleteDatabase(path);
+    _db = null;
   }
 }
